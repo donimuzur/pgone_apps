@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:pgone_apps/models/employee_model.dart';
 import '../shared/theme.dart';
+import '../helper/helper_funct.dart';
 
 class CustomCardBirthdayItemWidget extends StatelessWidget {
-  final String fullName;
-  final String dateBirth;
-  final String url;
-  final Color backgroundColor;
+  final EmployeeModel employee;
 
   const CustomCardBirthdayItemWidget(
-      {Key? key,
-      required this.fullName,
-      required this.dateBirth,
-      required this.url,
-      required this.backgroundColor})
-      : super(key: key);
+    this.employee, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +20,25 @@ class CustomCardBirthdayItemWidget extends StatelessWidget {
           children: [
             ClipOval(
               child: Container(
-                color: backgroundColor,
+                color: kMainBackgroundColor,
                 child: Image(
                   width: 80,
                   height: 80,
-                  image: AssetImage(url),
+                  image: AssetImage(employee.gender == "Male"
+                      ? "assets/images/avatar-boy.png"
+                      : "assets/images/avatar-girl.png"),
                 ),
               ),
             ),
             Text(
-              fullName,
+              employee.fullName.capitalize(),
               style: mainTextStyle.copyWith(
                   fontSize: 16,
                   color: Color(0xff22215B),
                   fontWeight: FontWeight.bold),
             ),
             Text(
-              dateBirth,
+              employee.dob,
               style: mainTextStyle.copyWith(
                   fontSize: 14,
                   color: Color(0xff22215B),

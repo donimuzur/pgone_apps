@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:pgone_apps/cubit/auth_cubit.dart';
+import 'package:pgone_apps/cubit/empbirthday_cubit.dart';
 import 'package:pgone_apps/cubit/setting_cubit.dart';
 import 'package:pgone_apps/pages/attendance_view.dart';
 import 'package:pgone_apps/pages/checkinout_view.dart';
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
-        BlocProvider(create: (context) => SettingCubit())
+        BlocProvider(create: (context) => SettingCubit()),
+        BlocProvider(create: (context) => EmpbirthdayCubit())
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

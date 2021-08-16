@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pgone_apps/cubit/auth_cubit.dart';
+import 'package:pgone_apps/cubit/empbirthday_cubit.dart';
+import 'package:pgone_apps/cubit/setting_cubit.dart';
+import 'package:pgone_apps/models/employee_model.dart';
 import 'package:pgone_apps/models/user_model.dart';
 import 'package:pgone_apps/shared/theme.dart';
 import 'package:pgone_apps/widget/custom_birthday_cardItem.dart';
@@ -13,6 +16,7 @@ class MainView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as UserModel;
+
     Widget __profileAndCheckInWidget() {
       return Stack(children: [
         // Profile
@@ -42,6 +46,7 @@ class MainView extends StatelessWidget {
                     size: 45,
                   ),
                   onPressed: () {
+                    context.read<SettingCubit>().setInit();
                     Navigator.pushNamed(context, "/Setting", arguments: args);
                   },
                 ),
@@ -288,55 +293,52 @@ class MainView extends StatelessWidget {
             ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  CustomCardBirthdayItemWidget(
-                      fullName: "Muhammad Zulfi Rusdani",
-                      dateBirth: "04 Oktober",
-                      url: "assets/images/avatar-boy.png",
-                      backgroundColor: kMainBackgroundColor),
-                  CustomCardBirthdayItemWidget(
-                      fullName: "JAMI'AN".capitalize(),
-                      dateBirth: "28 Juli",
-                      url: "assets/images/avatar-boy.png",
-                      backgroundColor: kMainBackgroundColor),
-                  CustomCardBirthdayItemWidget(
-                      fullName: "AHMAD SYARIFUDDIN".capitalize(),
-                      dateBirth: "29 Juli",
-                      url: "assets/images/avatar-boy.png",
-                      backgroundColor: kMainBackgroundColor),
-                  CustomCardBirthdayItemWidget(
-                      fullName: "TANHAR".capitalize(),
-                      dateBirth: "30 Juli",
-                      url: "assets/images/avatar-boy.png",
-                      backgroundColor: kMainBackgroundColor),
-                  CustomCardBirthdayItemWidget(
-                      fullName: "Mahyono".capitalize(),
-                      dateBirth: "30 Juli",
-                      url: "assets/images/avatar-boy.png",
-                      backgroundColor: kMainBackgroundColor),
-                  CustomCardBirthdayItemWidget(
-                      fullName: "DIAN SITORESMI",
-                      dateBirth: "30 Juli",
-                      url: "assets/images/avatar-girl.png",
-                      backgroundColor: kMainBackgroundColor),
-                ],
+              child: BlocBuilder<EmpbirthdayCubit, EmpbirthdayState>(
+                builder: (context, state) {
+                  if (state is EmpbirthdayInitial) {
+                    BlocProvider.of<EmpbirthdayCubit>(context)
+                        .getEmployeeBirthday(accessToken: args.accessToken);
+                    return Container(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  } else if (state is EmpbirthdaySuccess) {
+                    return Row(
+                      children: state.listEmp.map((EmployeeModel employee) {
+                        return CustomCardBirthdayItemWidget(employee);
+                      }).toList(),
+                    );
+                  } else if (state is EmpbirthdayLoading) {
+                    return Container(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      child: Center(
+                        child: Text('You have an error'),
+                      ),
+                    );
+                  }
+                },
               ),
             )
           ]));
     }
 
     return Scaffold(
-      backgroundColor: kMainBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          children: [
-            __profileAndCheckInWidget(),
-            __quickMenuWidget(),
-            __upcomingBirthdayWidget()
-          ],
-        ),
-      ),
-    );
+        backgroundColor: kMainBackgroundColor,
+        body: SafeArea(
+            child: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<EmpbirthdayCubit>().setInit();
+                },
+                child: ListView(children: [
+                  __profileAndCheckInWidget(),
+                  __quickMenuWidget(),
+                  __upcomingBirthdayWidget()
+                ]))));
   }
 }

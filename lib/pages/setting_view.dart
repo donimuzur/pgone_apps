@@ -5,8 +5,8 @@ import 'package:pgone_apps/cubit/auth_cubit.dart';
 import 'package:pgone_apps/cubit/setting_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pgone_apps/helper/helper_enum.dart';
+import 'package:pgone_apps/models/employee_model.dart';
 import 'package:pgone_apps/models/user_model.dart';
-import 'package:pgone_apps/pages/setting_myinfo_view.dart';
 import 'package:pgone_apps/services/employee_service.dart';
 import 'package:pgone_apps/shared/theme.dart';
 import 'package:pgone_apps/widget/custom_setting_menu.dart';
@@ -22,6 +22,7 @@ class _SettingViewState extends State<SettingView> {
   bool isEditable = false;
   EnumGender? _gender = EnumGender.male;
   EnumMaritalStatus? _maritalStatus = EnumMaritalStatus.single;
+  late EmployeeModel emp;
 
   @override
   Widget build(BuildContext context) {
@@ -85,14 +86,30 @@ class _SettingViewState extends State<SettingView> {
                 SizedBox(
                   height: 10,
                 ),
-                Text(
-                  "Muhammad Zulfi Rusdani",
-                  style: mainTextStyle.copyWith(
-                      wordSpacing: 0,
-                      fontWeight: FontWeight.bold,
-                      color: kBlueColor,
-                      fontSize: 16),
-                  overflow: TextOverflow.ellipsis,
+                BlocBuilder<SettingCubit, SettingState>(
+                  builder: (context, state) {
+                    if (state is SettingSuccess) {
+                      return Text(
+                        "Muhammad Zulfi Rusdani",
+                        style: mainTextStyle.copyWith(
+                            wordSpacing: 0,
+                            fontWeight: FontWeight.bold,
+                            color: kBlueColor,
+                            fontSize: 16),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    } else {
+                      return Text(
+                        "",
+                        style: mainTextStyle.copyWith(
+                            wordSpacing: 0,
+                            fontWeight: FontWeight.bold,
+                            color: kBlueColor,
+                            fontSize: 16),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
+                  },
                 ),
                 SizedBox(
                   height: 30,
@@ -113,33 +130,37 @@ class _SettingViewState extends State<SettingView> {
     }
 
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-            backgroundColor: isEditable ? kBlueColor : kGreyColor,
-            onPressed: () {
-              setState(() {
-                isEditable = true;
-              });
-            },
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 5,
-                ),
-                Icon(
-                  isEditable ? Icons.save : Icons.edit,
-                  color: Colors.white,
-                ),
-                Text(
-                  isEditable ? "Save" : "Edit",
-                  style: mainTextStyle.copyWith(fontWeight: FontWeight.w700),
-                )
-              ],
-            )),
+        floatingActionButton: BlocBuilder<SettingCubit, SettingState>(
+          builder: (context, state) {
+            return FloatingActionButton(
+                backgroundColor: isEditable ? kBlueColor : kGreyColor,
+                onPressed: () {
+                  setState(() {
+                    isEditable = true;
+                  });
+                },
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Icon(
+                      isEditable ? Icons.save : Icons.edit,
+                      color: Colors.white,
+                    ),
+                    Text(
+                      isEditable ? "Save" : "Edit",
+                      style:
+                          mainTextStyle.copyWith(fontWeight: FontWeight.w700),
+                    )
+                  ],
+                ));
+          },
+        ),
         drawer: settingsDrawer(),
         backgroundColor: kMainBackgroundColor,
         body: SafeArea(
             child: Container(
-          margin: EdgeInsets.all(10),
           child: Column(
             children: [
               Stack(
@@ -175,202 +196,281 @@ class _SettingViewState extends State<SettingView> {
                 ],
               ),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20)),
-                  margin: EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.only(top: 15, left: 15, right: 15),
-                        child: Text(
-                          "Data Diri",
-                          style: mainTextStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color:
-                                  isEditable ? kBlueColor : kDividerGreyColor),
+                flex: 1,
+                child: BlocBuilder<SettingCubit, SettingState>(
+                  builder: (context, state) {
+                    if (state is SettingLoading) {
+                      return Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 15),
-                        margin: EdgeInsets.symmetric(horizontal: 15),
-                        child: TextFormField(
-                          enabled: isEditable,
-                          cursorColor: kBlueColor,
-                          style: mainTextStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  isEditable ? kBlueColor : kDividerGreyColor),
-                          initialValue: "Muhammad Zulfi Rusdani",
-                          decoration: InputDecoration(
-                              labelText: 'Full Name',
-                              labelStyle: mainTextStyle.copyWith(
-                                color: kGreyColor,
-                              ),
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none),
+                      );
+                    } else if (state is SettingInitial) {
+                      BlocProvider.of<SettingCubit>(context)
+                          .getEmployeeDetails(userModel: args);
+                      return Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                      Divider(
-                        height: 1,
-                        color: isEditable ? kBlueColor : kDividerGreyColor,
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 15),
-                        margin: EdgeInsets.symmetric(horizontal: 15),
-                        child: TextFormField(
-                          enabled: isEditable,
-                          cursorColor: kBlueColor,
-                          style: mainTextStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  isEditable ? kBlueColor : kDividerGreyColor),
-                          initialValue: "0318504",
-                          decoration: InputDecoration(
-                              labelText: 'Employee Id',
-                              labelStyle: mainTextStyle.copyWith(
-                                color: kGreyColor,
-                              ),
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none),
-                        ),
-                      ),
-                      Divider(
-                        height: 1,
-                        color: isEditable ? kBlueColor : kDividerGreyColor,
-                      ),
-                      Container(
-                          padding: EdgeInsets.symmetric(horizontal: 15),
-                          margin: EdgeInsets.symmetric(horizontal: 15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Gender",
-                                style:
-                                    mainTextStyle.copyWith(color: kGreyColor),
-                              ),
-                              Row(
+                      );
+                    } else if (state is SettingSuccess) {
+                      _gender = state.employee.gender == "Male"
+                          ? EnumGender.male
+                          : EnumGender.female;
+
+                      _maritalStatus = state.employee.martialStatus == "Married"
+                          ? EnumMaritalStatus.married
+                          : EnumMaritalStatus.single;
+
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          isEditable = false;
+                          BlocProvider.of<SettingCubit>(context).setInit();
+                        },
+                        child: ListView.builder(
+                          itemCount: 1,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
+                              margin: EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Radio<EnumGender>(
-                                    value: EnumGender.male,
-                                    groupValue: _gender,
-                                    onChanged: isEditable
-                                        ? (EnumGender? value) {
-                                            setState(() {
-                                              _gender = value;
-                                            });
-                                          }
-                                        : null,
-                                  ),
-                                  Text(
-                                    "Male",
-                                    style: mainTextStyle.copyWith(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: isEditable
-                                            ? kBlueColor
-                                            : kDividerGreyColor),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Radio<EnumGender>(
-                                    value: EnumGender.female,
-                                    groupValue: _gender,
-                                    onChanged: isEditable
-                                        ? (EnumGender? value) {
-                                            setState(() {
-                                              _gender = value;
-                                            });
-                                          }
-                                        : null,
-                                  ),
-                                  Text(
-                                    "Female",
-                                    style: mainTextStyle.copyWith(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: isEditable
-                                            ? kBlueColor
-                                            : kDividerGreyColor),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )),
-                      Divider(
-                        height: 1,
-                        color: isEditable ? kBlueColor : kDividerGreyColor,
-                      ),
-                      Container(
-                          padding: EdgeInsets.symmetric(horizontal: 15),
-                          margin: EdgeInsets.symmetric(horizontal: 15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Gender",
-                                style:
-                                    mainTextStyle.copyWith(color: kGreyColor),
-                              ),
-                              DropdownButtonFormField(
-                                decoration: InputDecoration(
-                                    enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide.none)),
-                                value: _maritalStatus,
-                                items: <DropdownMenuItem<EnumMaritalStatus>>[
-                                  DropdownMenuItem(
-                                    value: EnumMaritalStatus.single,
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        top: 15, left: 15, right: 15),
                                     child: Text(
-                                      EnumMaritalStatus.single.text,
+                                      "Data Diri",
                                       style: mainTextStyle.copyWith(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: isEditable
+                                              ? kBlueColor
+                                              : kDividerGreyColor),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 15),
+                                    margin:
+                                        EdgeInsets.symmetric(horizontal: 15),
+                                    child: TextFormField(
+                                      enabled: isEditable,
+                                      cursorColor: kBlueColor,
+                                      style: mainTextStyle.copyWith(
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: isEditable
                                               ? kBlueColor
-                                              : kGreyColor),
+                                              : kDividerGreyColor),
+                                      initialValue: state.employee.fullName,
+                                      decoration: InputDecoration(
+                                          labelText: 'Full Name',
+                                          labelStyle: mainTextStyle.copyWith(
+                                            color: kGreyColor,
+                                          ),
+                                          focusedBorder: InputBorder.none,
+                                          disabledBorder: InputBorder.none,
+                                          enabledBorder: InputBorder.none),
                                     ),
                                   ),
-                                  DropdownMenuItem(
-                                    value: EnumMaritalStatus.married,
-                                    child: Text(EnumMaritalStatus.married.text,
-                                        style: mainTextStyle.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                            color: isEditable
-                                                ? kBlueColor
-                                                : kGreyColor)),
+                                  Divider(
+                                    height: 1,
+                                    color: isEditable
+                                        ? kBlueColor
+                                        : kDividerGreyColor,
                                   ),
+                                  Container(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 15),
+                                    margin:
+                                        EdgeInsets.symmetric(horizontal: 15),
+                                    child: TextFormField(
+                                      enabled: isEditable,
+                                      cursorColor: kBlueColor,
+                                      style: mainTextStyle.copyWith(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: isEditable
+                                              ? kBlueColor
+                                              : kDividerGreyColor),
+                                      initialValue: state.employee.employeeId,
+                                      decoration: InputDecoration(
+                                          labelText: 'Employee Id',
+                                          labelStyle: mainTextStyle.copyWith(
+                                            color: kGreyColor,
+                                          ),
+                                          focusedBorder: InputBorder.none,
+                                          disabledBorder: InputBorder.none,
+                                          enabledBorder: InputBorder.none),
+                                    ),
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: isEditable
+                                        ? kBlueColor
+                                        : kDividerGreyColor,
+                                  ),
+                                  Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 15),
+                                      margin:
+                                          EdgeInsets.symmetric(horizontal: 15),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            "Gender",
+                                            style: mainTextStyle.copyWith(
+                                                color: kGreyColor),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Radio<EnumGender>(
+                                                value: EnumGender.male,
+                                                groupValue: _gender,
+                                                onChanged: isEditable
+                                                    ? (EnumGender? value) {
+                                                        setState(() {
+                                                          _gender = value;
+                                                        });
+                                                      }
+                                                    : null,
+                                              ),
+                                              Text(
+                                                "Male",
+                                                style: mainTextStyle.copyWith(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: isEditable
+                                                        ? kBlueColor
+                                                        : kDividerGreyColor),
+                                              ),
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+                                              Radio<EnumGender>(
+                                                value: EnumGender.female,
+                                                groupValue: _gender,
+                                                onChanged: isEditable
+                                                    ? (EnumGender? value) {
+                                                        setState(() {
+                                                          _gender = value;
+                                                        });
+                                                      }
+                                                    : null,
+                                              ),
+                                              Text(
+                                                "Female",
+                                                style: mainTextStyle.copyWith(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: isEditable
+                                                        ? kBlueColor
+                                                        : kDividerGreyColor),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )),
+                                  Divider(
+                                    height: 1,
+                                    color: isEditable
+                                        ? kBlueColor
+                                        : kDividerGreyColor,
+                                  ),
+                                  Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 15),
+                                      margin:
+                                          EdgeInsets.symmetric(horizontal: 15),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            "Gender",
+                                            style: mainTextStyle.copyWith(
+                                                color: kGreyColor),
+                                          ),
+                                          DropdownButtonFormField(
+                                            decoration: InputDecoration(
+                                                enabledBorder:
+                                                    UnderlineInputBorder(
+                                                        borderSide:
+                                                            BorderSide.none)),
+                                            value: _maritalStatus,
+                                            items: <
+                                                DropdownMenuItem<
+                                                    EnumMaritalStatus>>[
+                                              DropdownMenuItem(
+                                                value: EnumMaritalStatus.single,
+                                                child: Text(
+                                                  EnumMaritalStatus.single.text,
+                                                  style: mainTextStyle.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: isEditable
+                                                          ? kBlueColor
+                                                          : kGreyColor),
+                                                ),
+                                              ),
+                                              DropdownMenuItem(
+                                                value:
+                                                    EnumMaritalStatus.married,
+                                                child: Text(
+                                                    EnumMaritalStatus
+                                                        .married.text,
+                                                    style:
+                                                        mainTextStyle.copyWith(
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: isEditable
+                                                                ? kBlueColor
+                                                                : kGreyColor)),
+                                              ),
+                                            ],
+                                            onChanged: isEditable
+                                                ? (value) {
+                                                    setState(() {
+                                                      _maritalStatus = value
+                                                          as EnumMaritalStatus;
+                                                    });
+                                                  }
+                                                : null,
+                                          ),
+                                        ],
+                                      )),
+                                  Divider(
+                                    height: 1,
+                                    color: isEditable
+                                        ? kBlueColor
+                                        : kDividerGreyColor,
+                                  )
                                 ],
-                                onChanged: isEditable
-                                    ? (value) {
-                                        setState(() {
-                                          _maritalStatus =
-                                              value as EnumMaritalStatus;
-                                        });
-                                      }
-                                    : null,
                               ),
-                            ],
-                          )),
-                      Divider(
-                        height: 1,
-                        color: isEditable ? kBlueColor : kDividerGreyColor,
-                      )
-                    ],
-                  ),
+                            );
+                          },
+                        ),
+                      );
+                    } else {
+                      return Container(
+                        child: Center(
+                          child: Text('You have an error'),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
             ],

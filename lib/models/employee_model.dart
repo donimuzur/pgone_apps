@@ -5,15 +5,18 @@ class EmployeeModel extends Equatable {
   String fullName;
   String pin;
   String gender;
+  String dob;
   String martialStatus;
-  EmployeeModel(this.employeeId, this.gender, this.fullName, this.martialStatus,
-      this.pin);
+  EmployeeModel(this.dob, this.employeeId, this.gender, this.fullName,
+      this.martialStatus, this.pin);
   EmployeeModel.fromJson(Map<String, dynamic> json)
-      : employeeId = json['code'],
-        fullName = json['fullName'],
+      : employeeId = json['code'] == null ? "" : json["code"],
+        fullName = json['fullName'] == null ? "" : json['fullName'],
         pin = "",
-        gender = json['gender'],
-        martialStatus = json['maritalStatus'];
+        gender = json['gender'] == null ? "" : json['gender'],
+        dob = json['dob'] == null ? "" : json['dob'],
+        martialStatus =
+            json['maritalStatus'] == null ? "" : json["maritalStatus"];
 
   @override
   List<Object?> get props =>
